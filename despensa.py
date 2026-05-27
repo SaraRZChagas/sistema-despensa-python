@@ -13,6 +13,7 @@ lista_compras = []   # Lista gerada automaticamente
 historico = []       # Registo de ações com data/hora
 
 FICHEIRO_DESPENSA = "despensa.txt"
+FICHEIRO_LISTA = "lista_compras.txt"
 
 # ──────────────────────────────────────────────────────────────
 # FUNÇÕES UTILITÁRIAS
@@ -97,6 +98,29 @@ def carregar_dados():
         return True
     except FileNotFoundError:
         return False
+    
+
+
+def guardar_lista():
+    with open(FICHEIRO_LISTA, "w", encoding="utf-8") as f:
+        for item in lista_compras:
+            f.write(f"{item['nome']},{item['unidade']},{item['quantidade_necessaria']},{item['comprado']},{item['urgente']}\n")
+
+def carregar_lista():
+    try:
+        with open(FICHEIRO_LISTA, "r", encoding="utf-8") as f:
+            for linha_txt in f.readlines():
+                dados = linha_txt.strip().split(",")
+                if len(dados) == 5:
+                    lista_compras.append({
+                        "nome": dados[0],
+                        "unidade": dados[1],
+                        "quantidade_necessaria": float(dados[2]),
+                        "comprado": dados[3] == "True",
+                        "urgente": dados[4] == "True"
+                    })
+    except FileNotFoundError:
+        pass
     
     
 # ──────────────────────────────────────────────────────────────
@@ -258,7 +282,90 @@ def gerar_lista_compras():
                 print(f"     • {item['nome']:<20} {item['quantidade_necessaria']:>6.1f} {item['unidade']}")
         print(f"\n  📋 Total: {len(lista_compras)} produto(s) para comprar")
         registar_acao(f"Lista de compras gerada: {len(lista_compras)} itens")
+    guardar_lista()
     pausar()
+
+def adicionar_item_lista():
+    cabecalho("  ✏️   ADICIONAR ITEM À LISTA DE COMPRAS")
+    print()
+    nome = input("  Nome do produto: ").strip().title()
+    if not nome:
+        print("  ⚠  Nome não pode ser vazio.")
+        pausar()
+        return
+    # Verifica se já está na lista
+    for item in lista_compras:
+        if item["nome"].lower() == nome.lower():
+            print(f"  ⚠  '{nome}' já está na lista de compras.")
+            pausar()
+            return
+    unidade = input("  Unidade (ex: kg, L, un, g): ").strip() or "un"
+    quantidade = input_numero(f"  Quantidade a comprar ({unidade}): ", permitir_zero=False)
+    lista_compras.append({
+        "nome": nome,
+        "unidade": unidade,
+        "quantidade_necessaria": quantidade,
+        "comprado": False,
+        "urgente": False
+    })
+    registar_acao(f"Item adicionado manualmente à lista: {nome} ({quantidade} {unidade})")
+    print(f"\n  ✅  '{nome}' adicionado à lista de compras!")
+    guardar_lista() 
+    pausar()
+    
+def ver_lista_compras():
+    cabecalho("  📋  LISTA DE COMPRAS")
+    print()
+    if not lista_compras:
+        print("  A lista está vazia. Gera a lista automática ou adiciona itens manualmente.")
+        pausar()
+        return
+    por_comprar = [i for i in lista_compras if not i["comprado"]]
+    comprados   = [i for i in lista_compras if i["comprado"]]
+    if por_comprar:
+        print("  🛒 POR COMPRAR:")
+        print(f"  {'Nº':<4} {'PRODUTO':<22} {'QTD':<8} {'UN':<5} URGENTE")
+        print("  " + linha("─", 50))
+        for i, item in enumerate(por_comprar, 1):
+            urgente = "🔴 SIM" if item["urgente"] else "   não"
+            print(f"  {i:<4} {item['nome']:<22} {item['quantidade_necessaria']:<8.1f} {item['unidade']:<5} {urgente}")
+    if comprados:
+        print()
+        print("  ✅ JÁ COMPRADO:")
+        for item in comprados:
+            print(f"     ✔ {item['nome']}")
+    print()
+    print(f"  📋 Total: {len(por_comprar)} por comprar | {len(comprados)} já comprado(s)")
+    pausar()
+
+
+def remover_item_lista():
+    cabecalho("  🗑️   REMOVER ITEM DA LISTA")
+    print()
+    if not lista_compras:
+        print("  A lista está vazia.")
+        pausar()
+        return
+    for i, item in enumerate(lista_compras, 1):
+        estado = "✔" if item["comprado"] else "🛒"
+        print(f"  {i:>2}. {estado} {item['nome']} — {item['quantidade_necessaria']} {item['unidade']}")
+    print()
+    escolha = input_inteiro("  Número do item a remover (0 para cancelar): ", 0, len(lista_compras))
+    if escolha == 0:
+        return
+    item = lista_compras[escolha - 1]
+    confirmacao = input(f"  Remover '{item['nome']}' da lista? (s/n): ").lower()
+    if confirmacao == "s":
+        lista_compras.remove(item)
+        guardar_lista()
+        registar_acao(f"Item removido da lista: {item['nome']}")
+        print(f"  ✅  '{item['nome']}' removido da lista.")
+    else:
+        print("  ❌  Remoção cancelada.")
+    
+    pausar()
+
+
 
 def ver_e_marcar_compras():
     cabecalho("  ✅  REGISTAR COMPRAS")
@@ -296,6 +403,7 @@ def ver_e_marcar_compras():
             print("\n  🎉 Todas as compras registadas! Despensa atualizada.")
             break
     guardar_dados()
+    guardar_lista()
     pausar()
 
 # ──────────────────────────────────────────────────────────────
@@ -378,13 +486,22 @@ def menu_compras():
         cabecalho("  🛒  LISTA DE COMPRAS")
         print()
         print("  1. 🔄  Gerar lista automática")
-        print("  2. ✅  Registar compras efetuadas")
+        print("  2. ✏️   Adicionar item manualmente")
+        print("  3. 📋  Ver lista de compras")
+        print("  4. 🗑️   Remover item da lista")
+        print("  5. ✅  Registar compras efetuadas")
         print("  0. ⬅️   Voltar")
         print()
         opcao = input("  Escolhe uma opção: ").strip()
         if opcao == "1":
             gerar_lista_compras()
         elif opcao == "2":
+            adicionar_item_lista()
+        elif opcao == "3":
+            ver_lista_compras()
+        elif opcao == "4":
+            remover_item_lista()
+        elif opcao == "5":
             ver_e_marcar_compras()
         elif opcao == "0":
             break
@@ -396,6 +513,7 @@ def menu_principal():
     limpar_ecra()
     print("\n  🔄  A carregar dados...")
     dados_carregados = carregar_dados()
+    carregar_lista()  
     if not dados_carregados:
         print("  📄  Nenhum ficheiro encontrado. A iniciar com despensa vazia.")
     else:
