@@ -97,3 +97,127 @@ def carregar_dados():
         return True
     except FileNotFoundError:
         return False
+    
+    
+# ──────────────────────────────────────────────────────────────
+# FUNÇÕES DA DESPENSA
+# ──────────────────────────────────────────────────────────────
+
+def encontrar_item(nome):
+    for item in despensa:
+        if item["nome"].lower() == nome.lower():
+            return item
+    return None
+
+def estado_item(item):
+    percentagem = (item["quantidade"] / item["quantidade_ideal"]) * 100 if item["quantidade_ideal"] > 0 else 0
+    if item["quantidade"] <= item["minimo"]:
+        return "🔴", "CRÍTICO"
+    elif percentagem < 50:
+        return "🟡", "BAIXO"
+    elif percentagem >= 100:
+        return "✅", "CHEIO"
+    else:
+        return "🟢", "OK"
+
+def adicionar_item():
+    cabecalho("  ➕  ADICIONAR ITEM À DESPENSA")
+    print()
+    nome = input("  Nome do produto: ").strip().title()
+    if not nome:
+        print("  ⚠  Nome não pode ser vazio.")
+        return
+    if encontrar_item(nome):
+        print(f"  ⚠  '{nome}' já existe. Usa 'Atualizar' para editar.")
+        pausar()
+        return
+    unidade = input("  Unidade (ex: kg, L, un, g): ").strip() or "un"
+    quantidade = input_numero(f"  Quantidade atual ({unidade}): ")
+    quantidade_ideal = input_numero(f"  Quantidade ideal p/ início de mês ({unidade}): ", permitir_zero=False)
+    minimo = input_numero(f"  Quantidade mínima (alerta de compra) ({unidade}): ")
+    item = {
+        "nome": nome,
+        "unidade": unidade,
+        "quantidade": quantidade,
+        "quantidade_ideal": quantidade_ideal,
+        "minimo": minimo
+    }
+    despensa.append(item)
+    guardar_dados()
+    registar_acao(f"Item adicionado: {nome} ({quantidade} {unidade})")
+    print(f"\n  ✅  '{nome}' adicionado e guardado no ficheiro!")
+    pausar()
+
+def listar_despensa():
+    cabecalho("  📦  INVENTÁRIO DA DESPENSA")
+    if not despensa:
+        print("\n  A despensa está vazia. Adiciona itens primeiro.")
+        pausar()
+        return
+    print()
+    print(f"  {'PRODUTO':<20} {'QTD':>6} {'IDEAL':>6} {'MÍN':>5} {'UN':<5} {'ESTADO':<10}")
+    print("  " + linha("─", 54))
+    criticos = []
+    for item in sorted(despensa, key=lambda x: x["nome"]):
+        emoji, estado = estado_item(item)
+        print(f"  {item['nome']:<20} {item['quantidade']:>6.1f} {item['quantidade_ideal']:>6.1f} {item['minimo']:>5.1f} {item['unidade']:<5} {emoji} {estado}")
+        if item["quantidade"] <= item["minimo"]:
+            criticos.append(item["nome"])
+    print("  " + linha("─", 54))
+    print(f"  Total de produtos: {len(despensa)}")
+    if criticos:
+        print(f"\n  🔴 Atenção! {len(criticos)} produto(s) em nível crítico:")
+        for c in criticos:
+            print(f"     • {c}")
+    pausar()
+
+def atualizar_quantidade():
+    cabecalho("  📝  ATUALIZAR QUANTIDADE")
+    print()
+    if not despensa:
+        print("  A despensa está vazia.")
+        pausar()
+        return
+    for i, item in enumerate(despensa, 1):
+        emoji, _ = estado_item(item)
+        print(f"  {i:>2}. {emoji} {item['nome']} — {item['quantidade']} {item['unidade']}")
+    print()
+    escolha = input_inteiro("  Número do produto (0 para cancelar): ", 0, len(despensa))
+    if escolha == 0:
+        return
+    item = despensa[escolha - 1]
+    print(f"\n  Produto: {item['nome']} | Atual: {item['quantidade']} {item['unidade']}")
+    nova_qtd = input_numero(f"  Nova quantidade ({item['unidade']}): ")
+    anterior = item["quantidade"]
+    item["quantidade"] = nova_qtd
+    guardar_dados()
+    registar_acao(f"Quantidade atualizada: {item['nome']} {anterior}→{nova_qtd} {item['unidade']}")
+    emoji, estado = estado_item(item)
+    print(f"\n  ✅  Atualizado e guardado! Estado: {emoji} {estado}")
+    if item["quantidade"] <= item["minimo"]:
+        print(f"  ⚠  Atenção! '{item['nome']}' está abaixo do mínimo.")
+    pausar()
+
+def remover_item():
+    cabecalho("  🗑  REMOVER ITEM")
+    print()
+    if not despensa:
+        print("  A despensa está vazia.")
+        pausar()
+        return
+    for i, item in enumerate(despensa, 1):
+        print(f"  {i:>2}. {item['nome']}")
+    print()
+    escolha = input_inteiro("  Número do produto a remover (0 para cancelar): ", 0, len(despensa))
+    if escolha == 0:
+        return
+    item = despensa[escolha - 1]
+    confirmacao = input(f"  Tens a certeza que queres remover '{item['nome']}'? (s/n): ").lower()
+    if confirmacao == "s":
+        despensa.remove(item)
+        guardar_dados()
+        registar_acao(f"Item removido: {item['nome']}")
+        print(f"  ✅  '{item['nome']}' removido e ficheiro atualizado.")
+    else:
+        print("  ❌  Remoção cancelada.")
+    pausar()
