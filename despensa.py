@@ -298,3 +298,152 @@ def ver_e_marcar_compras():
     guardar_dados()
     pausar()
 
+# ──────────────────────────────────────────────────────────────
+# RELATÓRIO E HISTÓRICO
+# ──────────────────────────────────────────────────────────────
+
+def ver_relatorio():
+    cabecalho("  📊  RELATÓRIO DA DESPENSA")
+    print()
+    if not despensa:
+        print("  Sem dados para apresentar.")
+        pausar()
+        return
+    total    = len(despensa)
+    criticos = sum(1 for i in despensa if i["quantidade"] <= i["minimo"])
+    cheios   = sum(1 for i in despensa if i["quantidade"] >= i["quantidade_ideal"])
+    baixos   = sum(1 for i in despensa if i["minimo"] < i["quantidade"] < i["quantidade_ideal"] * 0.5)
+    ok       = total - criticos - cheios - baixos
+    print(f"  📦 Total de produtos:    {total}")
+    print(f"  ✅ Nível ideal (cheios): {cheios}")
+    print(f"  🟢 Nível OK:             {ok}")
+    print(f"  🟡 Nível baixo:          {baixos}")
+    print(f"  🔴 Nível crítico:        {criticos}")
+    percentagem_saude = round(((cheios + ok) / total) * 100, 1) if total > 0 else 0
+    print(f"\n  💪 Saúde da despensa: {percentagem_saude}%")
+    if percentagem_saude >= 80:
+        print("     Excelente! A despensa está bem abastecida. 🎉")
+    elif percentagem_saude >= 50:
+        print("     Razoável. Há alguns produtos a repor.")
+    else:
+        print("     Atenção! A despensa precisa de reposição urgente.")
+    pausar()
+
+def ver_historico():
+    cabecalho("  📜  HISTÓRICO DE AÇÕES")
+    print()
+    if not historico:
+        print("  Sem histórico de ações.")
+    else:
+        for entrada in historico[-15:]:
+            print(f"  {entrada}")
+        if len(historico) > 15:
+            print(f"\n  ... e mais {len(historico) - 15} ações anteriores.")
+    pausar()
+
+
+# ──────────────────────────────────────────────────────────────
+# MENUS INTERATIVOS
+# ──────────────────────────────────────────────────────────────
+
+def menu_despensa():
+    while True:
+        limpar_ecra()
+        cabecalho("  📦  GESTÃO DA DESPENSA")
+        print()
+        print("  1. ➕  Adicionar produto")
+        print("  2. 📋  Ver inventário")
+        print("  3. ✏️   Atualizar quantidade")
+        print("  4. 🗑️   Remover produto")
+        print("  0. ⬅️   Voltar")
+        print()
+        opcao = input("  Escolhe uma opção: ").strip()
+        if opcao == "1":
+            adicionar_item()
+        elif opcao == "2":
+            listar_despensa()
+        elif opcao == "3":
+            atualizar_quantidade()
+        elif opcao == "4":
+            remover_item()
+        elif opcao == "0":
+            break
+        else:
+            print("  ⚠  Opção inválida.")
+            pausar()
+
+def menu_compras():
+    while True:
+        limpar_ecra()
+        cabecalho("  🛒  LISTA DE COMPRAS")
+        print()
+        print("  1. 🔄  Gerar lista automática")
+        print("  2. ✅  Registar compras efetuadas")
+        print("  0. ⬅️   Voltar")
+        print()
+        opcao = input("  Escolhe uma opção: ").strip()
+        if opcao == "1":
+            gerar_lista_compras()
+        elif opcao == "2":
+            ver_e_marcar_compras()
+        elif opcao == "0":
+            break
+        else:
+            print("  ⚠  Opção inválida.")
+            pausar()
+
+def menu_principal():
+    limpar_ecra()
+    print("\n  🔄  A carregar dados...")
+    dados_carregados = carregar_dados()
+    if not dados_carregados:
+        print("  📄  Nenhum ficheiro encontrado. A iniciar com despensa vazia.")
+    else:
+        print(f"  ✅  {len(despensa)} produto(s) carregados do ficheiro.")
+    pausar()
+    while True:
+        limpar_ecra()
+        print()
+        print("╔══════════════════════════════════════════════════════╗")
+        print("║         🏠  SISTEMA DE GESTÃO DE DESPENSA            ║")
+        print("╚══════════════════════════════════════════════════════╝")
+        if despensa:
+            criticos = sum(1 for i in despensa if i["quantidade"] <= i["minimo"])
+            print(f"  📦 {len(despensa)} produto(s) na despensa", end="")
+            if criticos:
+                print(f"  |  🔴 {criticos} em nível crítico", end="")
+            print()
+        print()
+        print("  1. 📦  Gestão da Despensa")
+        print("  2. 🛒  Lista de Compras")
+        print("  3. 📊  Relatório")
+        print("  4. 📜  Histórico")
+        print()
+        print("  0. 🚪  Sair")
+        print()
+        opcao = input("  Escolhe uma opção: ").strip()
+        if opcao == "1":
+            menu_despensa()
+        elif opcao == "2":
+            menu_compras()
+        elif opcao == "3":
+            ver_relatorio()
+        elif opcao == "4":
+            ver_historico()
+        elif opcao == "0":
+            limpar_ecra()
+            print()
+            print("  👋  Obrigada por usar o Sistema de Gestão de Despensa!")
+            print("      Até à próxima! 🏠")
+            print()
+            break
+        else:
+            print("  ⚠  Opção inválida. Tenta novamente.")
+            pausar()
+
+
+# ──────────────────────────────────────────────────────────────
+# PONTO DE ENTRADA
+# ──────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    menu_principal()
