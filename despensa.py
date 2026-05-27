@@ -252,18 +252,30 @@ def remover_item():
 
 def gerar_lista_compras():
     global lista_compras
-    lista_compras = []
+    # Guarda os itens adicionados manualmente
+    manuais = [i for i in lista_compras if i.get("manual")]
+    
+    # Gera os automáticos do zero
+    automaticos = []
     for item in despensa:
         if item["quantidade"] < item["quantidade_ideal"]:
-            quantidade_necessaria = item["quantidade_ideal"] - item["quantidade"]
-            lista_compras.append({
-                "nome": item["nome"],
-                "unidade": item["unidade"],
-                "quantidade_necessaria": round(quantidade_necessaria, 2),
-                "comprado": False,
-                "urgente": item["quantidade"] <= item["minimo"]
-            })
+            # Não duplica se já tiver sido adicionado manualmente
+            ja_existe = any(i["nome"].lower() == item["nome"].lower() for i in manuais)
+            if not ja_existe:
+                quantidade_necessaria = item["quantidade_ideal"] - item["quantidade"]
+                automaticos.append({
+                    "nome": item["nome"],
+                    "unidade": item["unidade"],
+                    "quantidade_necessaria": round(quantidade_necessaria, 2),
+                    "comprado": False,
+                    "urgente": item["quantidade"] <= item["minimo"],
+                    "manual": False
+                })
+    
+    # Junta manuais + automáticos
+    lista_compras = manuais + automaticos
     lista_compras.sort(key=lambda x: (not x["urgente"], x["nome"]))
+
     cabecalho("  🛒  LISTA DE COMPRAS GERADA")
     print()
     if not lista_compras:
