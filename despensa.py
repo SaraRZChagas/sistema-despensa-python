@@ -221,3 +221,80 @@ def remover_item():
     else:
         print("  ❌  Remoção cancelada.")
     pausar()
+
+# ──────────────────────────────────────────────────────────────
+# FUNÇÕES DA LISTA DE COMPRAS
+# ──────────────────────────────────────────────────────────────
+
+def gerar_lista_compras():
+    global lista_compras
+    lista_compras = []
+    for item in despensa:
+        if item["quantidade"] < item["quantidade_ideal"]:
+            quantidade_necessaria = item["quantidade_ideal"] - item["quantidade"]
+            lista_compras.append({
+                "nome": item["nome"],
+                "unidade": item["unidade"],
+                "quantidade_necessaria": round(quantidade_necessaria, 2),
+                "comprado": False,
+                "urgente": item["quantidade"] <= item["minimo"]
+            })
+    lista_compras.sort(key=lambda x: (not x["urgente"], x["nome"]))
+    cabecalho("  🛒  LISTA DE COMPRAS GERADA")
+    print()
+    if not lista_compras:
+        print("  ✅  A despensa está completa! Nenhuma compra necessária.")
+    else:
+        urgentes = [i for i in lista_compras if i["urgente"]]
+        normais  = [i for i in lista_compras if not i["urgente"]]
+        if urgentes:
+            print("  🔴 URGENTE:")
+            for item in urgentes:
+                print(f"     • {item['nome']:<20} {item['quantidade_necessaria']:>6.1f} {item['unidade']}")
+            print()
+        if normais:
+            print("  🟡 A REPOR:")
+            for item in normais:
+                print(f"     • {item['nome']:<20} {item['quantidade_necessaria']:>6.1f} {item['unidade']}")
+        print(f"\n  📋 Total: {len(lista_compras)} produto(s) para comprar")
+        registar_acao(f"Lista de compras gerada: {len(lista_compras)} itens")
+    pausar()
+
+def ver_e_marcar_compras():
+    cabecalho("  ✅  REGISTAR COMPRAS")
+    print()
+    if not lista_compras:
+        print("  Sem lista de compras. Gera primeiro a lista automática.")
+        pausar()
+        return
+    por_comprar = [i for i in lista_compras if not i["comprado"]]
+    if not por_comprar:
+        print("  ✅  Todas as compras já foram registadas!")
+        pausar()
+        return
+    print(f"  {'Nº':<4} {'PRODUTO':<22} {'QTD':<8} {'UN':<5} URGENTE")
+    print("  " + linha("─", 50))
+    for i, item in enumerate(por_comprar, 1):
+        urgente = "🔴 SIM" if item["urgente"] else "   não"
+        print(f"  {i:<4} {item['nome']:<22} {item['quantidade_necessaria']:<8.1f} {item['unidade']:<5} {urgente}")
+    print()
+    print("  (Escreve o número para marcar como comprado, 0 para sair)")
+    while True:
+        escolha = input_inteiro("  Nº do produto comprado (0 para sair): ", 0, len(por_comprar))
+        if escolha == 0:
+            break
+        item_comprado = por_comprar[escolha - 1]
+        item_comprado["comprado"] = True
+        item_despensa = encontrar_item(item_comprado["nome"])
+        if item_despensa:
+            item_despensa["quantidade"] = item_despensa["quantidade_ideal"]
+            emoji, estado = estado_item(item_despensa)
+            print(f"  ✅  '{item_comprado['nome']}' marcado! Despensa: {emoji} {estado}")
+            registar_acao(f"Compra registada: {item_comprado['nome']} ({item_comprado['quantidade_necessaria']} {item_comprado['unidade']})")
+        por_comprar = [i for i in lista_compras if not i["comprado"]]
+        if not por_comprar:
+            print("\n  🎉 Todas as compras registadas! Despensa atualizada.")
+            break
+    guardar_dados()
+    pausar()
+
