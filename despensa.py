@@ -68,3 +68,32 @@ def input_inteiro(mensagem, minimo=0, maximo=None):
         except ValueError:
             print("  ⚠  Introduz um número inteiro válido.")
 
+# ──────────────────────────────────────────────────────────────
+# FUNÇÕES DE FICHEIROS
+# ──────────────────────────────────────────────────────────────
+
+def guardar_dados():
+    """Guarda todos os produtos no ficheiro despensa.txt."""
+    with open(FICHEIRO_DESPENSA, "w", encoding="utf-8") as f:
+        for item in despensa:
+            f.write(f"{item['nome']},{item['unidade']},{item['quantidade']},{item['quantidade_ideal']},{item['minimo']}\n")
+
+def carregar_dados():
+    """Carrega os produtos do ficheiro despensa.txt para a memória."""
+    try:
+        with open(FICHEIRO_DESPENSA, "r", encoding="utf-8") as f:
+            linhas = f.readlines()
+            for linha_txt in linhas:
+                dados = linha_txt.strip().split(",")
+                if len(dados) == 5:
+                    despensa.append({
+                        "nome": dados[0],
+                        "unidade": dados[1],
+                        "quantidade": float(dados[2]),
+                        "quantidade_ideal": float(dados[3]),
+                        "minimo": float(dados[4])
+                    })
+        registar_acao(f"Dados carregados do ficheiro ({len(despensa)} produtos)")
+        return True
+    except FileNotFoundError:
+        return False
