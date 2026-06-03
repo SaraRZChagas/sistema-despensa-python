@@ -44,12 +44,13 @@ O projeto aplica os principais conceitos abordados no módulo: variáveis, condi
 
 ## Estrutura do Projeto
 
+```
 sistema-despensa-python/
 ├── despensa.py # Código principal da aplicação
 ├── despensa.txt # Dados da despensa (criado automaticamente)
 ├── lista_compras.txt # Lista de compras (criado automaticamente)
 └── README.md # Documentação do projeto
-
+```
 
 ---
 
