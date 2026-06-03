@@ -204,18 +204,29 @@ def editar_produto():
     if escolha == 0:
         return
     item = despensa[escolha - 1]
-    print(f"\n  Produto: {item['nome']} ({item['unidade']})")
-    print(f"  Ideal atual: {item['quantidade_ideal']} | Mínimo atual: {item['minimo']}")
+    print(f"\n  Produto: {item['nome']} | Unidade: {item['unidade']} | Ideal: {item['quantidade_ideal']} | Mínimo: {item['minimo']}")
     print()
-    if input("  Alterar ideal? (s/n): ").lower() == "s":
+
+    if input("  Alterar nome? (s/n): ").lower() == "s":
+        novo_nome = input(f"  Novo nome: ").strip().title()
+        if novo_nome:
+            item["nome"] = novo_nome
+
+    if input("  Alterar unidade? (s/n): ").lower() == "s":
+        nova_unidade = input(f"  Nova unidade (ex: kg, L, un, g): ").strip()
+        if nova_unidade:
+            item["unidade"] = nova_unidade
+
+    if input("  Alterar quantidade ideal? (s/n): ").lower() == "s":
         item["quantidade_ideal"] = input_numero(f"  Nova quantidade ideal ({item['unidade']}): ", permitir_zero=False)
-    if input("  Alterar mínimo? (s/n): ").lower() == "s":
-        item["minimo"] = input_numero(f"  Novo mínimo ({item['unidade']}): ")
+
+    if input("  Alterar quantidade mínima? (s/n): ").lower() == "s":
+        item["minimo"] = input_numero(f"  Nova quantidade mínima ({item['unidade']}): ")
+
     guardar_dados()
-    registar_acao(f"Produto editado: {item['nome']} — ideal: {item['quantidade_ideal']}, mínimo: {item['minimo']}")
+    registar_acao(f"Produto editado: {item['nome']} — unidade: {item['unidade']}, ideal: {item['quantidade_ideal']}, mínimo: {item['minimo']}")
     print(f"\n  ✅  '{item['nome']}' atualizado e guardado!")
     pausar()
-
 
 def atualizar_quantidade():
     cabecalho("  📝  ATUALIZAR QUANTIDADE")
@@ -261,7 +272,12 @@ def listar_despensa():
         if item["quantidade"] <= item["minimo"]:
             criticos.append(item["nome"])
     print("  " + linha("─", 54))
-    print(f"  Total de produtos: {len(despensa)}")
+    na_despensa = sum(1 for i in despensa if i["quantidade"] > 0)
+    por_registar = sum(1 for i in despensa if i["quantidade"] == 0)
+    print(f"  Produtos cadastrados:  {len(despensa)}")
+    print(f"  Com stock na despensa: {na_despensa}")
+    if por_registar:
+        print(f"  ⚪ Sem stock ainda:    {por_registar}  (usa 'Atualizar Quantidade')")
     if criticos:
         print(f"\n  🔴 Atenção! {len(criticos)} produto(s) em nível crítico:")
         for c in criticos:
@@ -589,8 +605,9 @@ def menu_principal():
         print("║         🏠  SISTEMA DE GESTÃO DE DESPENSA            ║")
         print("╚══════════════════════════════════════════════════════╝")
         if despensa:
+            na_despensa = sum(1 for i in despensa if i["quantidade"] > 0)
             criticos = sum(1 for i in despensa if i["quantidade"] <= i["minimo"])
-            print(f"  📦 {len(despensa)} produto(s) na despensa", end="")
+            print(f"  📦 {len(despensa)} produto(s) cadastrado(s)  |  🏠 {na_despensa} na despensa", end="")
             if criticos:
                 print(f"  |  🔴 {criticos} em nível crítico", end="")
             print()
