@@ -1,29 +1,36 @@
 # ================================================================================
 #   SISTEMA DE GESTÃO DE DESPENSA
-#   Projeto Final - Módulo Criar aplicações em linguagem de programação Python 
+#   Projeto Final - Módulo Criar aplicações em linguagem de programação Python 
 #   Aplicação de terminal para gerir inventário doméstico
 # ================================================================================
 
+
 import os
 from datetime import datetime
+
 
 # ── Dados em memória ─────────────────────────────────────────
 despensa = []        # Lista de produtos cadastrados
 lista_compras = []   # Lista gerada automaticamente
 historico = []       # Registo de ações com data/hora
 
+
 FICHEIRO_DESPENSA = "despensa.txt"
 FICHEIRO_LISTA = "lista_compras.txt"
+
 
 # ──────────────────────────────────────────────────────────────
 # FUNÇÕES UTILITÁRIAS
 # ──────────────────────────────────────────────────────────────
 
+
 def limpar_ecra():
     os.system("cls" if os.name == "nt" else "clear")
 
+
 def linha(char="─", largura=56):
     return char * largura
+
 
 def cabecalho(titulo):
     print()
@@ -31,12 +38,15 @@ def cabecalho(titulo):
     print("║" + titulo.center(54) + "║")
     print("╚" + "═" * 54 + "╝")
 
+
 def pausar():
     input("\n  Pressiona ENTER para continuar...")
+
 
 def registar_acao(acao):
     timestamp = datetime.now().strftime("%d/%m %H:%M")
     historico.append(f"[{timestamp}] {acao}")
+
 
 def input_numero(mensagem, minimo=0, maximo=None, permitir_zero=True):
     while True:
@@ -55,6 +65,7 @@ def input_numero(mensagem, minimo=0, maximo=None, permitir_zero=True):
         except ValueError:
             print("  ⚠  Introduz um número válido.")
 
+
 def input_inteiro(mensagem, minimo=0, maximo=None):
     while True:
         try:
@@ -69,15 +80,18 @@ def input_inteiro(mensagem, minimo=0, maximo=None):
         except ValueError:
             print("  ⚠  Introduz um número inteiro válido.")
 
+
 # ──────────────────────────────────────────────────────────────
 # FUNÇÕES DE FICHEIROS
 # ──────────────────────────────────────────────────────────────
+
 
 def guardar_dados():
     """Guarda todos os produtos no ficheiro despensa.txt."""
     with open(FICHEIRO_DESPENSA, "w", encoding="utf-8") as f:
         for item in despensa:
             f.write(f"{item['nome']},{item['unidade']},{item['quantidade']},{item['quantidade_ideal']},{item['minimo']}\n")
+
 
 def carregar_dados():
     """Carrega os produtos do ficheiro despensa.txt para a memória."""
@@ -98,40 +112,43 @@ def carregar_dados():
         return True
     except FileNotFoundError:
         return False
-    
 
 
 def guardar_lista():
     with open(FICHEIRO_LISTA, "w", encoding="utf-8") as f:
         for item in lista_compras:
-            f.write(f"{item['nome']},{item['unidade']},{item['quantidade_necessaria']},{item['comprado']},{item['urgente']}\n")
+            f.write(f"{item['nome']},{item['unidade']},{item['quantidade_necessaria']},{item['comprado']},{item['urgente']},{item.get('manual', False)}\n")
+
 
 def carregar_lista():
     try:
         with open(FICHEIRO_LISTA, "r", encoding="utf-8") as f:
             for linha_txt in f.readlines():
                 dados = linha_txt.strip().split(",")
-                if len(dados) == 5:
+                if len(dados) == 6:
                     lista_compras.append({
                         "nome": dados[0],
                         "unidade": dados[1],
                         "quantidade_necessaria": float(dados[2]),
                         "comprado": dados[3] == "True",
-                        "urgente": dados[4] == "True"
+                        "urgente": dados[4] == "True",
+                        "manual": dados[5] == "True"
                     })
     except FileNotFoundError:
         pass
-    
-    
+
+
 # ──────────────────────────────────────────────────────────────
 # FUNÇÕES DA DESPENSA
 # ──────────────────────────────────────────────────────────────
+
 
 def encontrar_item(nome):
     for item in despensa:
         if item["nome"].lower() == nome.lower():
             return item
     return None
+
 
 def estado_item(item):
     percentagem = (item["quantidade"] / item["quantidade_ideal"]) * 100 if item["quantidade_ideal"] > 0 else 0
@@ -144,6 +161,7 @@ def estado_item(item):
     else:
         return "🟢", "OK"
 
+
 def adicionar_item():
     cabecalho("  ➕  ADICIONAR ITEM À DESPENSA")
     print()
@@ -152,48 +170,52 @@ def adicionar_item():
         print("  ⚠  Nome não pode ser vazio.")
         return
     if encontrar_item(nome):
-        print(f"  ⚠  '{nome}' já existe. Usa 'Atualizar' para editar.")
+        print(f"  ⚠  '{nome}' já existe. Usa 'Editar Produto' para alterar.")
         pausar()
         return
     unidade = input("  Unidade (ex: kg, L, un, g): ").strip() or "un"
-    quantidade = input_numero(f"  Quantidade atual ({unidade}): ")
     quantidade_ideal = input_numero(f"  Quantidade ideal p/ início de mês ({unidade}): ", permitir_zero=False)
     minimo = input_numero(f"  Quantidade mínima (alerta de compra) ({unidade}): ")
     item = {
         "nome": nome,
         "unidade": unidade,
-        "quantidade": quantidade,
+        "quantidade": 0,
         "quantidade_ideal": quantidade_ideal,
         "minimo": minimo
     }
     despensa.append(item)
     guardar_dados()
-    registar_acao(f"Item adicionado: {nome} ({quantidade} {unidade})")
-    print(f"\n  ✅  '{nome}' adicionado e guardado no ficheiro!")
+    registar_acao(f"Item adicionado: {nome} (ideal: {quantidade_ideal} {unidade})")
+    print(f"\n  ✅  '{nome}' adicionado! Usa 'Atualizar Quantidade' para registar o que tens em casa.")
     pausar()
 
-def listar_despensa():
-    cabecalho("  📦  INVENTÁRIO DA DESPENSA")
+
+def editar_produto():
+    cabecalho("  ✏️   EDITAR PRODUTO")
+    print()
     if not despensa:
-        print("\n  A despensa está vazia. Adiciona itens primeiro.")
+        print("  A despensa está vazia.")
         pausar()
         return
+    for i, item in enumerate(despensa, 1):
+        print(f"  {i:>2}. {item['nome']} — ideal: {item['quantidade_ideal']} {item['unidade']} | mín: {item['minimo']} {item['unidade']}")
     print()
-    print(f"  {'PRODUTO':<20} {'QTD':>6} {'IDEAL':>6} {'MÍN':>5} {'UN':<5} {'ESTADO':<10}")
-    print("  " + linha("─", 54))
-    criticos = []
-    for item in sorted(despensa, key=lambda x: x["nome"]):
-        emoji, estado = estado_item(item)
-        print(f"  {item['nome']:<20} {item['quantidade']:>6.1f} {item['quantidade_ideal']:>6.1f} {item['minimo']:>5.1f} {item['unidade']:<5} {emoji} {estado}")
-        if item["quantidade"] <= item["minimo"]:
-            criticos.append(item["nome"])
-    print("  " + linha("─", 54))
-    print(f"  Total de produtos: {len(despensa)}")
-    if criticos:
-        print(f"\n  🔴 Atenção! {len(criticos)} produto(s) em nível crítico:")
-        for c in criticos:
-            print(f"     • {c}")
+    escolha = input_inteiro("  Número do produto (0 para cancelar): ", 0, len(despensa))
+    if escolha == 0:
+        return
+    item = despensa[escolha - 1]
+    print(f"\n  Produto: {item['nome']} ({item['unidade']})")
+    print(f"  Ideal atual: {item['quantidade_ideal']} | Mínimo atual: {item['minimo']}")
+    print()
+    if input("  Alterar ideal? (s/n): ").lower() == "s":
+        item["quantidade_ideal"] = input_numero(f"  Nova quantidade ideal ({item['unidade']}): ", permitir_zero=False)
+    if input("  Alterar mínimo? (s/n): ").lower() == "s":
+        item["minimo"] = input_numero(f"  Novo mínimo ({item['unidade']}): ")
+    guardar_dados()
+    registar_acao(f"Produto editado: {item['nome']} — ideal: {item['quantidade_ideal']}, mínimo: {item['minimo']}")
+    print(f"\n  ✅  '{item['nome']}' atualizado e guardado!")
     pausar()
+
 
 def atualizar_quantidade():
     cabecalho("  📝  ATUALIZAR QUANTIDADE")
@@ -222,6 +244,31 @@ def atualizar_quantidade():
         print(f"  ⚠  Atenção! '{item['nome']}' está abaixo do mínimo.")
     pausar()
 
+
+def listar_despensa():
+    cabecalho("  📦  INVENTÁRIO DA DESPENSA")
+    if not despensa:
+        print("\n  A despensa está vazia. Adiciona itens primeiro.")
+        pausar()
+        return
+    print()
+    print(f"  {'PRODUTO':<20} {'QTD':>6} {'IDEAL':>6} {'MÍN':>5} {'UN':<5} {'ESTADO':<10}")
+    print("  " + linha("─", 54))
+    criticos = []
+    for item in sorted(despensa, key=lambda x: x["nome"]):
+        emoji, estado = estado_item(item)
+        print(f"  {item['nome']:<20} {item['quantidade']:>6.1f} {item['quantidade_ideal']:>6.1f} {item['minimo']:>5.1f} {item['unidade']:<5} {emoji} {estado}")
+        if item["quantidade"] <= item["minimo"]:
+            criticos.append(item["nome"])
+    print("  " + linha("─", 54))
+    print(f"  Total de produtos: {len(despensa)}")
+    if criticos:
+        print(f"\n  🔴 Atenção! {len(criticos)} produto(s) em nível crítico:")
+        for c in criticos:
+            print(f"     • {c}")
+    pausar()
+
+
 def remover_item():
     cabecalho("  🗑  REMOVER ITEM")
     print()
@@ -246,20 +293,18 @@ def remover_item():
         print("  ❌  Remoção cancelada.")
     pausar()
 
+
 # ──────────────────────────────────────────────────────────────
 # FUNÇÕES DA LISTA DE COMPRAS
 # ──────────────────────────────────────────────────────────────
 
+
 def gerar_lista_compras():
     global lista_compras
-    # Guarda os itens adicionados manualmente
     manuais = [i for i in lista_compras if i.get("manual")]
-    
-    # Gera os automáticos do zero
     automaticos = []
     for item in despensa:
         if item["quantidade"] < item["quantidade_ideal"]:
-            # Não duplica se já tiver sido adicionado manualmente
             ja_existe = any(i["nome"].lower() == item["nome"].lower() for i in manuais)
             if not ja_existe:
                 quantidade_necessaria = item["quantidade_ideal"] - item["quantidade"]
@@ -271,11 +316,8 @@ def gerar_lista_compras():
                     "urgente": item["quantidade"] <= item["minimo"],
                     "manual": False
                 })
-    
-    # Junta manuais + automáticos
     lista_compras = manuais + automaticos
     lista_compras.sort(key=lambda x: (not x["urgente"], x["nome"]))
-
     cabecalho("  🛒  LISTA DE COMPRAS GERADA")
     print()
     if not lista_compras:
@@ -297,6 +339,7 @@ def gerar_lista_compras():
     guardar_lista()
     pausar()
 
+
 def adicionar_item_lista():
     cabecalho("  ✏️   ADICIONAR ITEM À LISTA DE COMPRAS")
     print()
@@ -305,7 +348,6 @@ def adicionar_item_lista():
         print("  ⚠  Nome não pode ser vazio.")
         pausar()
         return
-    # Verifica se já está na lista
     for item in lista_compras:
         if item["nome"].lower() == nome.lower():
             print(f"  ⚠  '{nome}' já está na lista de compras.")
@@ -318,13 +360,15 @@ def adicionar_item_lista():
         "unidade": unidade,
         "quantidade_necessaria": quantidade,
         "comprado": False,
-        "urgente": False
+        "urgente": False,
+        "manual": True
     })
     registar_acao(f"Item adicionado manualmente à lista: {nome} ({quantidade} {unidade})")
     print(f"\n  ✅  '{nome}' adicionado à lista de compras!")
-    guardar_lista() 
+    guardar_lista()
     pausar()
-    
+
+
 def ver_lista_compras():
     cabecalho("  📋  LISTA DE COMPRAS")
     print()
@@ -374,9 +418,7 @@ def remover_item_lista():
         print(f"  ✅  '{item['nome']}' removido da lista.")
     else:
         print("  ❌  Remoção cancelada.")
-    
     pausar()
-
 
 
 def ver_e_marcar_compras():
@@ -418,9 +460,11 @@ def ver_e_marcar_compras():
     guardar_lista()
     pausar()
 
+
 # ──────────────────────────────────────────────────────────────
 # RELATÓRIO E HISTÓRICO
 # ──────────────────────────────────────────────────────────────
+
 
 def ver_relatorio():
     cabecalho("  📊  RELATÓRIO DA DESPENSA")
@@ -449,6 +493,7 @@ def ver_relatorio():
         print("     Atenção! A despensa precisa de reposição urgente.")
     pausar()
 
+
 def ver_historico():
     cabecalho("  📜  HISTÓRICO DE AÇÕES")
     print()
@@ -466,31 +511,36 @@ def ver_historico():
 # MENUS INTERATIVOS
 # ──────────────────────────────────────────────────────────────
 
+
 def menu_despensa():
     while True:
         limpar_ecra()
         cabecalho("  📦  GESTÃO DA DESPENSA")
         print()
         print("  1. ➕  Adicionar produto")
-        print("  2. 📋  Ver inventário")
-        print("  3. ✏️   Atualizar quantidade")
-        print("  4. 🗑️   Remover produto")
+        print("  2. ✏️   Editar produto")
+        print("  3. 📝  Atualizar quantidade")
+        print("  4. 📋  Ver inventário")
+        print("  5. 🗑️   Remover produto")
         print("  0. ⬅️   Voltar")
         print()
         opcao = input("  Escolhe uma opção: ").strip()
         if opcao == "1":
             adicionar_item()
         elif opcao == "2":
-            listar_despensa()
+            editar_produto()
         elif opcao == "3":
             atualizar_quantidade()
         elif opcao == "4":
+            listar_despensa()
+        elif opcao == "5":
             remover_item()
         elif opcao == "0":
             break
         else:
             print("  ⚠  Opção inválida.")
             pausar()
+
 
 def menu_compras():
     while True:
@@ -521,11 +571,12 @@ def menu_compras():
             print("  ⚠  Opção inválida.")
             pausar()
 
+
 def menu_principal():
     limpar_ecra()
     print("\n  🔄  A carregar dados...")
     dados_carregados = carregar_dados()
-    carregar_lista()  
+    carregar_lista()
     if not dados_carregados:
         print("  📄  Nenhum ficheiro encontrado. A iniciar com despensa vazia.")
     else:
