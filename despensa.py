@@ -410,6 +410,46 @@ def ver_lista_compras():
     print(f"  📋 Total: {len(por_comprar)} por comprar | {len(comprados)} já comprado(s)")
     pausar()
 
+def editar_item_lista():
+    cabecalho("  ✏️   EDITAR ITEM DA LISTA DE COMPRAS")
+    print()
+    if not lista_compras:
+        print("  A lista está vazia.")
+        pausar()
+        return
+    for i, item in enumerate(lista_compras, 1):
+        estado = "✔" if item["comprado"] else "🛒"
+        manual = " [manual]" if item.get("manual") else ""
+        print(f"  {i:>2}. {estado} {item['nome']} — {item['quantidade_necessaria']} {item['unidade']}{manual}")
+    print()
+    escolha = input_inteiro("  Número do item (0 para cancelar): ", 0, len(lista_compras))
+    if escolha == 0:
+        return
+    item = lista_compras[escolha - 1]
+    print(f"\n  Item: {item['nome']} | Quantidade: {item['quantidade_necessaria']} {item['unidade']}")
+    print()
+
+    if input("  Alterar nome? (s/n): ").lower() == "s":
+        novo_nome = input("  Novo nome: ").strip().title()
+        if novo_nome:
+            item["nome"] = novo_nome
+
+    if input("  Alterar unidade? (s/n): ").lower() == "s":
+        nova_unidade = input("  Nova unidade (ex: kg, L, un, g): ").strip()
+        if nova_unidade:
+            item["unidade"] = nova_unidade
+
+    if input("  Alterar quantidade? (s/n): ").lower() == "s":
+        item["quantidade_necessaria"] = input_numero(f"  Nova quantidade ({item['unidade']}): ", permitir_zero=False)
+
+    if input("  Marcar como urgente? (s/n): ").lower() == "s":
+        item["urgente"] = True
+    
+    guardar_lista()
+    registar_acao(f"Item da lista editado: {item['nome']} ({item['quantidade_necessaria']} {item['unidade']})")
+    print(f"\n  ✅  '{item['nome']}' atualizado na lista!")
+    pausar()
+
 
 def remover_item_lista():
     cabecalho("  🗑️   REMOVER ITEM DA LISTA")
@@ -566,8 +606,9 @@ def menu_compras():
         print("  1. 🔄  Gerar lista automática")
         print("  2. ✏️   Adicionar item manualmente")
         print("  3. 📋  Ver lista de compras")
-        print("  4. 🗑️   Remover item da lista")
-        print("  5. ✅  Registar compras efetuadas")
+        print("  4. 🔧   Editar item da lista")
+        print("  5. 🗑️   Remover item da lista")
+        print("  6. ✅  Registar compras efetuadas")
         print("  0. ⬅️   Voltar")
         print()
         opcao = input("  Escolhe uma opção: ").strip()
@@ -578,8 +619,10 @@ def menu_compras():
         elif opcao == "3":
             ver_lista_compras()
         elif opcao == "4":
-            remover_item_lista()
+            editar_item_lista()
         elif opcao == "5":
+            remover_item_lista()
+        elif opcao == "6":
             ver_e_marcar_compras()
         elif opcao == "0":
             break

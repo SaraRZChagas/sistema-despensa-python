@@ -1,2 +1,2 @@
-Feijão,un,6.0,False,True,False
+Feijão,un,5.0,True,True,False
 Arroz,kg,1.0,False,False,False
