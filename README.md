@@ -93,10 +93,11 @@ Não são necessárias bibliotecas externas. O programa utiliza apenas `os` e `d
 
 Cada produto é guardado como uma linha em `despensa.txt`, com campos separados por vírgula:
 
+```
 Arroz,kg,0.5,5.0,1.0
 Açúcar,kg,2.0,2.0,0.5
 Café,g,50.0,500.0,100.0
-
+```
 
 Ao iniciar, o ficheiro é lido com `readlines()`, cada linha é separada com `.split(",")` e convertida num dicionário na lista `despensa`. A lista de compras segue o mesmo princípio, com 6 campos (incluindo o campo `manual`).
 
