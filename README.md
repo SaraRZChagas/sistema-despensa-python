@@ -1,8 +1,8 @@
-# 🏠 Sistema de Gestão de Despensa
+# Sistema de Gestão de Despensa
 
 > **Projeto Final — Módulo: Criar Aplicações em Linguagem de Programação Python**
 
----
+***
 
 ## Descrição
 
@@ -12,15 +12,15 @@ Os dados são guardados automaticamente em ficheiros `.txt` após cada alteraç�
 
 O projeto aplica os principais conceitos abordados no módulo: variáveis, condições, ciclos, funções, listas, dicionários, tratamento de erros e manipulação de ficheiros.
 
----
+***
 
 ## Funcionalidades
 
 ### Gestão da Despensa
-- Cadastrar produtos com nome, unidade, quantidade ideal e quantidade mínima
+- Cadastrar produtos com nome, unidade, quantidade ideal e quantidade mínima — a quantidade atual começa a 0 e é registada separadamente
 - Editar qualquer campo de um produto já cadastrado (nome, unidade, ideal, mínimo)
 - Atualizar a quantidade atual de um produto na despensa
-- Listar todos os produtos com indicador visual de estado (🔴 Crítico / 🟡 Baixo / 🟢 OK / ✅ Cheio)
+- Listar todos os produtos com indicador visual de estado (🔴 Crítico / 🟡 Baixo / 🟢 OK / ✅ Cheio), distinguindo produtos cadastrados de produtos com stock
 - Remover produtos
 
 ### Lista de Compras
@@ -40,19 +40,19 @@ O projeto aplica os principais conceitos abordados no módulo: variáveis, condi
 - Relatório com contagem por estado e percentagem de saúde da despensa
 - Histórico das últimas ações com data e hora
 
----
+***
 
 ## Estrutura do Projeto
 
 ```
 sistema-despensa-python/
-├── despensa.py # Código principal da aplicação
-├── despensa.txt # Dados da despensa (criado automaticamente)
-├── lista_compras.txt # Lista de compras (criado automaticamente)
-└── README.md # Documentação do projeto
+├── despensa.py        # Código principal da aplicação
+├── despensa.txt       # Dados da despensa (criado automaticamente)
+├── lista_compras.txt  # Lista de compras (criado automaticamente)
+└── README.md          # Documentação do projeto
 ```
 
----
+***
 
 ## Como Executar
 
@@ -66,7 +66,7 @@ python despensa.py
 
 Não são necessárias bibliotecas externas. O programa utiliza apenas `os` e `datetime` da biblioteca padrão do Python.
 
----
+***
 
 ## Conceitos Python Aplicados
 
@@ -79,7 +79,8 @@ Não são necessárias bibliotecas externas. O programa utiliza apenas `os` e `d
 | **Ciclos `while`** | Menus em loop até o utilizador sair |
 | **Ciclos `for`** | Percorrer e listar produtos |
 | **Funções** | +20 funções organizadas por responsabilidade |
-| **`try/except`** | Validação de todos os inputs numéricos |
+| **`try/except ValueError`** | Validação de inputs numéricos em `input_numero()` e `input_inteiro()` |
+| **`try/except FileNotFoundError`** | Carregar ficheiros em `carregar_dados()` e `carregar_lista()` |
 | **`f-strings`** | Formatação de todos os outputs |
 | **`datetime`** | Timestamp no histórico de ações |
 | **`open()` modo `"w"`** | Guardar dados nos ficheiros |
@@ -87,7 +88,7 @@ Não são necessárias bibliotecas externas. O programa utiliza apenas `os` e `d
 | **`readlines()`** | Ler todas as linhas do ficheiro |
 | **`with open()`** | Context Manager para fechar ficheiro automaticamente |
 
----
+***
 
 ## Como Funciona o Armazenamento
 
@@ -99,21 +100,21 @@ Açúcar,kg,2.0,2.0,0.5
 Café,g,50.0,500.0,100.0
 ```
 
-Ao iniciar, o ficheiro é lido com `readlines()`, cada linha é separada com `.split(",")` e convertida num dicionário na lista `despensa`. A lista de compras segue o mesmo princípio, com 6 campos (incluindo o campo `manual`).
+Ao iniciar, o ficheiro é lido com `readlines()`, cada linha é separada com `.split(",")` e convertida num dicionário na lista `despensa`. A lista de compras segue o mesmo princípio, com 6 campos (incluindo o campo `manual`, que distingue itens adicionados manualmente dos gerados automaticamente).
 
----
+***
 
 ## Arquitetura do Código
 
 O código está organizado em 5 camadas de funções:
 
-1. **Utilitários** — `limpar_ecra()`, `input_numero()`, `input_inteiro()`, `registar_acao()`
+1. **Utilitários** — `limpar_ecra()`, `linha()`, `cabecalho()`, `pausar()`, `registar_acao()`, `input_numero()`, `input_inteiro()`
 2. **Ficheiros** — `guardar_dados()`, `carregar_dados()`, `guardar_lista()`, `carregar_lista()`
 3. **Despensa** — `adicionar_item()`, `editar_produto()`, `atualizar_quantidade()`, `listar_despensa()`, `remover_item()`
 4. **Compras** — `gerar_lista_compras()`, `adicionar_item_lista()`, `editar_item_lista()`, `ver_lista_compras()`, `remover_item_lista()`, `ver_e_marcar_compras()`
 5. **Menus** — `menu_principal()`, `menu_despensa()`, `menu_compras()`
 
----
+***
 
 ## Melhorias Futuras
 
@@ -123,13 +124,13 @@ O código está organizado em 5 camadas de funções:
 - [ ] Interface gráfica com `tkinter`
 - [ ] Armazenamento em base de dados com SQLite
 
----
+***
 
 ## Autora
 
 Desenvolvido como projeto final do Módulo de Criar Aplicações em Linguagem de Programação Python.
 
----
+***
 
 ## Licença
 

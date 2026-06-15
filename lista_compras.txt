@@ -1,2 +1,4 @@
-Feijão,un,5.0,True,True,False
-Arroz,kg,1.0,False,False,False
+Arroz,kg,2.0,True,True,False
+Açucar,un,3.0,False,True,False
+Doce De Leite,un,2.0,False,True,True
+Farinha De Milho,kg,2.0,False,False,True
